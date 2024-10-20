@@ -4,6 +4,8 @@ const User = require('./models/userModel');
 const mongoose = require('mongoose');
 const jwtMiddleware = require('./middlewares/jwtMiddleware');
 const jwt = require('jsonwebtoken');
+const Workout = require('./models/workoutModel');
+const Exercise = require('./models/exerciseModel');
 require('dotenv').config();
 
 const PORT = 3000;
@@ -47,9 +49,30 @@ app.post('/login', async(req, res) => {
     res.send({ success: true, message: "Logged in successfully", token: token });
 })
 
-app.get('/get-workouts', jwtMiddleware, (req, res, next) => {
-    
+app.get('/workouts', jwtMiddleware, async (req, res) => {
+    const workouts = await Workout.find({ userId : req.body.userId });
+    res.send({ success: true, message: { workouts : workouts } });
 })
+
+app.post('/workout', jwtMiddleware, async (req, res) => {
+    const workout = new Workout(req.body);
+    workout.userId = req.body.userId;
+    await workout.save();
+    res.send({ success: true, message: "workout added successfully "});
+})
+
+app.post('/exercise', jwtMiddleware, async(req, res) => {
+    const exercise = new Exercise(req.body);
+    exercise.userId = req.body.userId;
+    await exercise.save();
+    res.send({ success: true, message: "exercise added successfully" });
+})
+
+app.get('/exercises', jwtMiddleware, async(req, res) => {
+    const exercises = await Exercise.find({ userId : req.body.userId });
+    res.send({ success: true, message: { exercises : exercises } });
+})
+
 
 app.listen(PORT, () => {
     console.log(`server listening on port ${PORT}:`);
